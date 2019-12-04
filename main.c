@@ -41,20 +41,6 @@ int existeArquivo (const char *nome);
 // Transforma de int para string, retorna a string propriamente dita 
 char *intParaStr (int ID);
 
-/* SOBRE O ARQUIVO GERADO */
-/*
-    A primeira linhas contem 1 valor:
-    n = numeros de elementos
-
-    O arquivo é seguido de 2 linhas e cada linha possui os
-	as chaves n e os filhos n+1 
-
-    EX:
-    2
-    13 17
-    999 123
-*/
-
 // Pega da memoria secundaria o conteudo de um nodo da arvore (arquivo)
 // e salva o conteudo na struct nodo_td na memoria primaria 
 void le (int ID);
@@ -70,12 +56,6 @@ void limpaBuffer (char c);
 void ordenaChaves (int v[], int n, int x);
 
 int main () {
-	int v[6] = {4, 6, 1, 2, 9};
-
-	ordenaChaves (v,6,5);
-
-	for (int i  = 0; i < 5; i++)
-		printf ("%d ", v[i]);
 	// // printf ("%d\n", nodo.n);
 	// // for (int i = 0; i < 10; i++){
 	// // 	printf ("%d ", nodo.filhos[i]);
@@ -122,19 +102,6 @@ int main () {
 	return 0;
 }
 
-/* Apartir do algoritmo visto em aula temos que */
-/*
-	Busca(nodo R, chave x)
-		se R contem x
-			retorne "sim" // por busca binaria!
-		Se x < primeira chave em R
-			i = primeiro filho de R
-		Se x > ultima chave em R
-			i = ultimo filho de R
-		Senao
-			i = tal que chave[i] < x < chave[i-1]
-		Retorne busca(r->filho[i],x)
-*/
 void busca(int ID, int x) {
 	char *nome = intParaStr (ID);
 	
@@ -196,8 +163,6 @@ void escreve (int ID) {
 	}
 }
 
-// Le o arquivo e escreve o conteudo na estrutura, 
-// tras o nodo para memoria principal
 void le (int ID) {
 	// printf ("to no le\n");
 	// Converte o nome para string
@@ -231,19 +196,6 @@ void le (int ID) {
 	// for (int i = 0; i < 10; i++){
 	// 	printf ("%d ", nodo.filhos[i]);
 	// }	
-
-	fclose (pArquivo);	
-}
-
-void insere (int x) {
-	ordenaChaves (nodo.chaves, nodo.n, x);
-	nodo.n++;
-	for (int i = 0; i < nodo.n; i++) {
-		fprintf (pArquivo, "%d", &nodo.chaves[i]);
-	}
-
-	for(int i = 0; i < TAM; i++)
-		printf("%d", nodo.chaves[i]);
 
 	fclose (pArquivo);	
 }
