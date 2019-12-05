@@ -9,6 +9,13 @@
 #include <string.h> // manipulação de cadeia de caracteres, verificar entradas
 #define TAM 100
 
+#define EXISTE 1
+#define NAOEXISTE 0
+#define TEMCONTEUDO 1
+#define VAZIO 0
+#define ENCONTRADA 1
+#define NAOENCONTRADA 0
+
 // estrutura que condiz a cada nodo da estrutura
 typedef struct {
 int n;           // numero de chaves no nodo
@@ -20,12 +27,28 @@ int filhos[TAM]; // vetor de filhos
 // portanto um nodo global evita que a estruta precise ser passada entre funcoes
 // aumentando assim a legibilidade
 nodo_td nodo;
+int R;
+int D = 3;
+int nMod = 0;
 
-// ponteiro para arquivo global, um pouco perigoso porem se usado com  
+// Ponteiro para arquivo global, um pouco perigoso porem se usado com  
 // responsabilidade muito eficiente, sempre lembrar de dar fclose
 FILE *pArquivo;
+/* SOBRE O ARQUIVO GERADO */
+/*
+    A primeira linhas contem 1 valor:
+    n = numeros de elementos
 
-// Funcoes
+    O arquivo é seguido de 2 linhas e cada linha possui os
+	as chaves n e os filhos n+1 
+
+    EX:
+    2
+    13 17
+    999 123
+*/
+
+// Funcoes:
 
 /*
   Possiveis retornos:    
@@ -34,97 +57,136 @@ FILE *pArquivo;
 */
 
 // Retorna tamanho do arquivo
-int verificaTamanho (const char *nome);
+int verificaTamanho (const char *);
 // Verifica se ja existe arquivo com o mesmo nome
-int existeArquivo (const char *nome);
+int existeArquivo (const char *);
 
 // Transforma de int para string, retorna a string propriamente dita 
-char *intParaStr (int ID);
-
+char *intParaStr (int);
 // Pega da memoria secundaria o conteudo de um nodo da arvore (arquivo)
 // e salva o conteudo na struct nodo_td na memoria primaria 
-void le (int ID);
+void le (int);
 
 // Salva na memoria secundaria (disco) nodo da arvore
 // contido na struct nodo_td  
-void escreve (int ID);
+void escreve (int);
 
-void busca(int ID, int x);
+void split (int);
 
-void insere (int x); 
-void limpaBuffer (char c);
-void ordenaChaves (int v[], int n, int x);
+void busca(int, int);
+
+void insere (int, int); 
+void limpaBuffer (char);
+void insereOrdenado (int);
+static int buscaChave (int);
 
 int main () {
-	// // printf ("%d\n", nodo.n);
-	// // for (int i = 0; i < 10; i++){
-	// // 	printf ("%d ", nodo.filhos[i]);
-	// // }
-
-	// int n, chave, ID;
-	// char *comando = (char *) malloc (7 * sizeof (char));
-	// char c = 0;
-
-	// // printf ("Digite Grau Maximo: ");
-	// // scanf ("%d", &n);
-	// printf ("Digite ID raiz: ");
-	// scanf ("%d", &ID);
-	
-	// char *nome = intParaStr (ID);
-	// int existe = existeArquivo (nome);
-
-	// if (existe) {
-	// 	printf ("Raiz em %s encontrada.\n", nome);
-	// 	le (ID);
-	// 	// escreve(ID);
+	// printf ("%d\n", nodo.n);
+	// for (int i = 0; i < 10; i++){
+	// 	printf ("%d ", nodo.filhos[i]);
 	// }
-	// else {
-	// 	// printf ("NAO EXISTE");
-	// 	escreve (ID);
-	// 	printf ("Criada raiz vazia em %s.\n", nome);
-	// }	
 
-	// do {
-	// 	printf ("\n> ");
-	// 	// limpaBuffer(c);
+	int n, chave, ID;
+	char *comando = (char *) malloc (7 * sizeof (char));
+	char c = 0;
+
+	// printf ("Digite Grau Maximo: ");
+	// scanf ("%d", &n);
+	printf ("Digite ID raiz: ");
+	scanf ("%d", &ID);
+	R = ID;
+	
+	char *nome = intParaStr (ID);
+	int existe = existeArquivo (nome);
+
+	if (existe) {
+		printf ("Raiz em %s encontrada.\n", nome);
+	}
+	else {
+		// printf ("NAO EXISTE");
+		escreve (ID);
+		printf ("Criada raiz vazia em %s.\n", nome);
+	}
+	
+	printf ("\n");
+	do {
+		printf ("> ");
 		
-	// 	scanf (" %s", comando);
-	// 	// limpaBuffer(c);
+		limpaBuffer(c);	
+		scanf ("%s", comando);
 		
-	// 	if (strcmp (comando, "insere") == 0) {
-	// 		scanf ("%d", &chave);
-	// 		pArquivo = fopen (IDstr, "w+");
-	// 		insere (chave);
-	// 	}	
-		
-	// } while ( strcmp(comando, "fim") );
+		if (strcmp (comando, "insere") == 0) {
+			scanf ("%d", &chave);
+			insere (R, chave);
+			nMod = nodo.n;
+		}	
+		if (strcmp (comando, "busca") == 0){
+			scanf ("%d", &chave);
+			busca (R, chave);
+		}
+	} while ( strcmp(comando, "fim") );
+
 	fclose (pArquivo);
 	return 0;
 }
 
-void busca(int ID, int x) {
-	char *nome = intParaStr (ID);
+void split (int ID) {
+	le (ID);
+	int d = D/2;
 	
+}
+
+void insere (int ID, int x) {
+	// Base da recursão NODO ser folha
+	le (ID);
+	if (nodo.filhos[0] == -1) {
+		if (nodo.n < D-1){
+			insereOrdenado (x);
+			nodo.n++;
+			nodo.filhos[nodo.n] = -1;
+			escreve (ID);
+		}
+		else if (nodo.n >= D-1) {
+			split (ID);
+		}
+
+	}
+
+	if (x < nodo.chaves[0]) 
+		return insere (nodo.filhos[0], x);
+
+	else if (x > nodo.chaves[nodo.n-1])
+		return insere (nodo.filhos[nodo.n], x); 
+	
+	else
+		for (int i = 1; i < nodo.n; i++) {
+			if ((x < nodo.chaves[i]) && (x > nodo.chaves[i-1]))   
+				return insere (nodo.filhos[i], x); 
+			break;
+		}
 }
 
 void escreve (int ID) {
 	// Altera nome de int para string
 	char *nome = intParaStr (ID);
 	// Contador 
-	int i;	
+	int i;
 
 	// Se tamanho nao existir
-	int tam = verificaTamanho (nome);
-	if (!tam) {
+	if (!verificaTamanho (nome)) {
 		// Abre arquivo para escrita 
 		pArquivo = fopen (nome, "w");
-
 		// Seta a qtd de chaves como ZERO
 		nodo.n = 0;
-
 		// E o valor do primeiro elemento do vetor filhos 
 		// como -1, sabendo que tal vetor precisa ser n+1 
+		fprintf (pArquivo, "%d\n", nodo.n);
 		fprintf (pArquivo, "-1 ", nodo.filhos[0]);
+
+		printf ("Escrito (");
+		for (i = 0; i < nodo.n; i++)
+			printf (" %d ", nodo.chaves[i]);
+		printf (")\n");
 
 		// fecha o arquivo
 		fclose (pArquivo);
@@ -135,13 +197,10 @@ void escreve (int ID) {
 		// Abre o arquivo como leitura e escrita
 		pArquivo = fopen (nome, "r+");
 
-		// Incrementa a qtd
-		nodo.n++;
-
 		// Guarda no arquivo o valor da qtd
 		fprintf (pArquivo, "%d\n", nodo.n);
 
-		// Preenche o vetor de chaves 
+		// Preenche o vetor de chaves 	
 		for (i = 0; i < nodo.n; i++)
 			fprintf (pArquivo, "%d ", nodo.chaves[i]);
 
@@ -156,7 +215,7 @@ void escreve (int ID) {
 		printf ("Escrito (");
 		for (i = 0; i < nodo.n; i++)
 			printf (" %d ", nodo.chaves[i]);
-		printf (")\n");		
+		printf (")\n");	
 
 		// Fecha arquivo
 		fclose (pArquivo);	
@@ -164,40 +223,94 @@ void escreve (int ID) {
 }
 
 void le (int ID) {
-	// printf ("to no le\n");
-	// Converte o nome para string
 	char *nome = intParaStr (ID);
-	int i;
 
 	// Abri arquivo em modo leitura
 	pArquivo = fopen (nome, "r");
 
-	// Escreve 
+	// Le para memoria principal a quantidade
 	fscanf (pArquivo, "%d", &nodo.n);
 
+	int i;
 	for (i = 0; i < nodo.n; i++)
-		fscanf (pArquivo, "%d", &nodo.chaves[i]);
+		fscanf (pArquivo, "%d", &nodo.chaves[i]); // Le o vetor de chaves di arquivo na struct  
 
 	for (i = 0; i < nodo.n + 1; i++)
-		fscanf (pArquivo, "%d", &nodo.filhos[i]);	
-
-	escreve (ID);	
-
+		fscanf (pArquivo, "%d", &nodo.filhos[i]); // Le o vetor de filhos para a memoria principal 
+	
+	// Printa o vetor de chaves ja presentes na memoria principal  
 	printf ("Lido (");
 	for (i = 0; i < nodo.n; i++)
 		printf (" %d ", nodo.chaves[i]);
 	printf (")\n");
-			
-	// printf ("%d\n", nodo.n);
-	// for (int i = 0; i < 10; i++){
-	// 	printf ("%d ", nodo.chaves[i]);
-	// }
-	// printf ("\n");
-	// for (int i = 0; i < 10; i++){
-	// 	printf ("%d ", nodo.filhos[i]);
-	// }	
 
+	// Desaloca o ponteiro de arquivo
 	fclose (pArquivo);	
+}
+
+void insereOrdenado (int x) {
+    int i = nodo.n;
+	int aux;
+	if (nodo.n == 0)
+		nodo.chaves[0] = x;  
+	
+	else {
+		nodo.chaves[nodo.n] = x;
+		while (i > 0 && nodo.chaves[i] < nodo.chaves[i - 1]) {
+			aux = nodo.chaves[i - 1];  
+			nodo.chaves[i - 1] = nodo.chaves[i];
+			nodo.chaves[i] = aux;  
+			i--;  
+		}  
+	}
+} 
+
+static int buscaChave (int x) {
+  int ini = 0;
+  int fim = nodo.n;
+
+  while (fim >= ini) {
+    int meio = (fim + ini) / 2;
+    if(nodo.chaves[meio] == x) 
+		return ENCONTRADA;
+
+    else if(nodo.chaves[meio] < x) 
+		ini = meio + 1;
+
+    else fim = meio - 1;
+  }
+  
+  return NAOENCONTRADA;
+}
+
+// Busca chave na arvore 
+void busca(int ID, int x) {
+	// Le o nodo, passa a informação do disco para a estrutura na memoria primaria  
+    le(ID);
+	// Base da referenciase a chave esta na raiz ENCONTADA
+	if (buscaChave(x)) 
+		ENCONTRADA;		
+	
+	// Se nao esta...
+    if (!buscaChave (x)){
+		// Se chave buscada menor que 1º chave  
+        if ((x < nodo.chaves[0]) || (nodo.filhos[0] == -1))
+           return busca (nodo.filhos[0], x); // Retorna de forma recursiva a busca da chave no 1ª filho
+		
+		// Se Chave buscada maior que a ultima 
+        else if ((x > nodo.chaves[nodo.n-1]) || (nodo.filhos[nodo.n] == -1))
+            return busca (nodo.filhos[nodo.n], x); // Retorna de forma recursiva a busca da chave no ultimo filho
+		
+		// Senao chave buscada estara entre o inicio e o fim
+        else {
+			// Varre o vetor de chaves da RAIZ
+            for (int i = 1; i < nodo.n; i++) {
+                if ((x < nodo.chaves[i]) && (x > nodo.chaves[i-1])) // Caso esteja entre o ini e fim  
+                    return busca (nodo.filhos[i], x); // Retorna de forma recursiva 
+					break; // para o laço 
+            }
+		}
+    }
 }
 
 void limpaBuffer(char c) {
@@ -221,23 +334,9 @@ int verificaTamanho (const char *nome) {
 		int tamanho = ftell (pArquivo);
 		fclose (pArquivo);
 
-		return 1;
+		return TEMCONTEUDO;
 	}
-
-	return 0;
-}
-
-void ordenaChaves (int v[], int n, int x) {  
-    int i, j;  
-    for (i = 1; i < n; i++) {  
-        x = v[i];  
-        j = i - 1;  
-        while (j >= 0 && v[j] > x) {  
-            v[j + 1] = v[j];  
-            j = j - 1;  
-        }  
-        v[j + 1] = x;  
-    }  
+	return VAZIO;
 }
 
 int existeArquivo (const char *nome) {
@@ -245,7 +344,7 @@ int existeArquivo (const char *nome) {
 
 	if (pArquivo) {
 		fclose (pArquivo);
-		return 1;
+		return EXISTE;
 	}
-		return 0;
+		return NAOEXISTE;
 }
