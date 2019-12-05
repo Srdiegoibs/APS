@@ -29,8 +29,8 @@ int filhos[TAM]; // vetor de filhos
 nodo_td nodo;
 int R;
 int D;
-int marcador;
-int Resq, Rdir;
+int precisaInserir;
+int raizEsquerda, raizDireita;
 
 // Ponteiro para arquivo global, um pouco perigoso porem se usado com  
 // responsabilidade muito eficiente, sempre lembrar de dar fclose
@@ -82,6 +82,7 @@ void insereOrdenado (int);
 static int buscaChave (int);
 void ordenaNaoUsar ();
 void inverteTalvezNaoUsa (int ini, int fim);
+void trocaPosicoe (int ini, int fim);
 
 int main () {
 	// printf ("%d\n", nodo.n);
@@ -144,6 +145,15 @@ void inverteTalvezNaoUsa (int ini, int fim) {
 	return inverteTalvezNaoUsa ((ini+1), (fim-1));
 }
 
+void trocaPosicoe (int ini, int fim) {
+	int aux;
+	for (int i = 0; i < nodo.n; i++) {
+		aux = nodo.chaves[fim];
+		nodo.chaves[fim] = nodo.chaves[ini];
+		nodo.chaves[ini] = aux;
+	}
+}
+
 void ordenaNaoUsar () {
 	int i, j, aux;
 	for (i = 0; i < (D/2); i++) {
@@ -160,19 +170,18 @@ void ordenaNaoUsar () {
 void split (int ID) {
 	char *nome = intParaStr(ID);
 	
-	
 	int novaID, aux;
 	aux = nodo.n;
-	printf("%d", ID);
+
 	if(ID == R) {
 		if (D%2 != 0) {
-			marcador = nodo.chaves[nodo.n/2];
+			precisaInserir = nodo.chaves[nodo.n/2];
 			nodo.n = D/2;
 			escreve (ID);
-			Resq = ID;
+			raizEsquerda = ID;
 			
-			printf ("filho esquerdo > %d\n", Resq);
-			inverteTalvezNaoUsa (0, D-1);
+			trocaPosicoe (0, D-1);
+			// inverteTalvezNaoUsa (0, D-1);
 			ordenaNaoUsar ();
 			
 			novaID = rand()%10000;
@@ -180,17 +189,16 @@ void split (int ID) {
 			pArquivo = fopen (nome, "w");
 			escreve (novaID);
 			fclose(pArquivo);
-			Rdir = novaID;
-			printf ("filho direito %d\n", Rdir);
+			raizDireita = novaID;
 			
 
 			novaID = rand()%10000;
 			nome = intParaStr (novaID);
 			pArquivo = fopen (nome, "w");
 			nodo.n = 1;
-			nodo.chaves[0] = marcador;
-			nodo.filhos[0] = Resq;
-			nodo.filhos[1] = Rdir;
+			nodo.chaves[0] = precisaInserir;
+			nodo.filhos[0] = raizEsquerda;
+			nodo.filhos[1] = raizDireita;
 			escreve (novaID);
 			fclose (pArquivo);
 			R = novaID;
