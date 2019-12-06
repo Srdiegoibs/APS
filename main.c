@@ -7,6 +7,7 @@
 #include <stdio.h> // entrada e saida
 #include <stdlib.h> // alocacao e rand 
 #include <string.h> // manipulação de cadeia de caracteres, verificar entradas
+#include <time.h> // time
 #define TAM 100
 
 #define EXISTE 1
@@ -31,6 +32,7 @@ int R;
 int D;
 int precisaInserir;
 int raizEsquerda, raizDireita;
+int contLeituras, contEscritas;
 
 // Ponteiro para arquivo global, um pouco perigoso porem se usado com  
 // responsabilidade muito eficiente, sempre lembrar de dar fclose
@@ -81,15 +83,11 @@ void limpaBuffer (char);
 void insereOrdenado (int);
 static int buscaChave (int);
 void ordenaNaoUsar ();
-void inverteTalvezNaoUsa (int ini, int fim);
-void trocaPosicoe (int ini, int fim);
+// void inverteTalvezNaoUsa (int ini, int fim);
+void inverte ();
+void ordenaNaoUsar ();
 
 int main () {
-	// printf ("%d\n", nodo.n);
-	// for (int i = 0; i < 10; i++){
-	// 	printf ("%d ", nodo.filhos[i]);
-	// }
-
 	int chave, ID;
 	char *comando = (char *) malloc (7 * sizeof (char));
 	char c = 0;
@@ -123,6 +121,9 @@ int main () {
 		if (strcmp (comando, "insere") == 0) {
 			scanf ("%d", &chave);
 			insere (R, chave);
+			printf ("%d leitura(s), %d escrita(s)\n", contLeituras, contLeituras);
+			contEscritas = 0;
+			contLeituras = 0;
 		}	
 		if (strcmp (comando, "busca") == 0){
 			scanf ("%d", &chave);
@@ -132,26 +133,6 @@ int main () {
 
 	fclose (pArquivo);
 	return 0;
-}
-
-void inverteTalvezNaoUsa (int ini, int fim) {
-	if ((fim - ini) <= 0)
-		return;
-	
-	int aux;
-	aux = nodo.chaves[fim];
-	nodo.chaves[fim] = nodo.chaves[ini];
-	nodo.chaves[ini] = aux;
-	return inverteTalvezNaoUsa ((ini+1), (fim-1));
-}
-
-void trocaPosicoe (int ini, int fim) {
-	int aux;
-	for (int i = 0; i < nodo.n; i++) {
-		aux = nodo.chaves[fim];
-		nodo.chaves[fim] = nodo.chaves[ini];
-		nodo.chaves[ini] = aux;
-	}
 }
 
 void ordenaNaoUsar () {
@@ -167,22 +148,46 @@ void ordenaNaoUsar () {
 	}
 }
 
+// void inverteTalvezNaoUsa (int ini, int fim) {
+// 	if ((fim - ini) <= 0)
+// 		return;
+	
+// 	int aux;
+// 	aux = nodo.chaves[fim];
+// 	nodo.chaves[fim] = nodo.chaves[ini];
+// 	nodo.chaves[ini] = aux;
+// 	return inverteTalvezNaoUsa ((ini+1), (fim-1));
+// }
+
+void inverte () {
+	int i, j;
+    i = 0;
+    j = (D/2)+1;
+
+    for(i = 0; i<(D/2); i++) {
+        int aux;
+        aux = nodo.chaves[j];
+        nodo.chaves[j] = nodo.chaves[i];
+        nodo.chaves[i] = aux;
+    }
+}
+
 void split (int ID) {
 	char *nome = intParaStr(ID);
-	
-	int novaID, aux;
-	aux = nodo.n;
+	int novaID;
 
 	if(ID == R) {
 		if (D%2 != 0) {
-			precisaInserir = nodo.chaves[nodo.n/2];
 			nodo.n = D/2;
-			escreve (ID);
-			raizEsquerda = ID;
 			
-			trocaPosicoe (0, D-1);
-			// inverteTalvezNaoUsa (0, D-1);
+			precisaInserir = nodo.chaves[nodo.n];
+			escreve (ID);
+			
+			inverte ();
 			ordenaNaoUsar ();
+
+			raizEsquerda = ID;
+			inverte ();
 			
 			novaID = rand()%10000;
 			nome = intParaStr (novaID);
@@ -191,7 +196,6 @@ void split (int ID) {
 			fclose(pArquivo);
 			raizDireita = novaID;
 			
-
 			novaID = rand()%10000;
 			nome = intParaStr (novaID);
 			pArquivo = fopen (nome, "w");
@@ -203,30 +207,126 @@ void split (int ID) {
 			fclose (pArquivo);
 			R = novaID;
 			
-			printf("Nova Raiz aqui %d\n", R);
+			printf("-- Nova raiz com ID %d --\n", R);
+			precisaInserir = -1;
+
+		}
+		else {
+			nodo.n = ((D/2) - 1);
+			precisaInserir = nodo.chaves[nodo.n];
+            
+            escreve(ID);
+
+            nodo.n = D/2;
+            inverte ();
+            ordenaNaoUsar ();
+            raizEsquerda = ID;
+
+            novaID = rand()%10000;
+            nome = intParaStr (novaID);
+            pArquivo = fopen(nome, "w");
+            escreve (novaID);
+            fclose (pArquivo);
+            raizDireita = novaID;
+
+            novaID = rand()%10000;
+            nome = intParaStr (ID);
+            pArquivo = fopen(nome, "w");
+            nodo.n = 1;
+            nodo.chaves[0] = precisaInserir;
+            nodo.filhos[0] = raizEsquerda;
+            nodo.filhos[1] = raizDireita;
+            escreve (novaID);
+            fclose (pArquivo);
+            R = novaID;
+            printf("-- Nova raiz com ID %d --\n", novaID);
+            precisaInserir = -1;
 		}
 	}
 	else {
-		printf ("civil tem regua no CU\n");
-	}
+
+        if (D%2 != 0) {
+            nodo.n = (D/2);
+            
+			precisaInserir = nodo.chaves[nodo.n];
+            escreve(ID);
+
+            inverte ();
+            ordenaNaoUsar ();
+
+            novaID = rand()%10000;
+            nome = intParaStr (novaID);
+            pArquivo = fopen(nome, "w");
+            escreve(novaID);
+            fclose(pArquivo);
+            raizDireita = novaID;
+        }
+        else {
+            precisaInserir = nodo.chaves[D/2];
+
+            nodo.n = D/2;
+            escreve (ID);
+            raizDireita = ID;
+
+            inverte ();
+        	ordenaNaoUsar ();
+
+            novaID = rand()%10000;
+            nome = intParaStr (novaID);
+            pArquivo = fopen(nome, "w");
+            escreve (novaID);
+            fclose (pArquivo);
+            raizDireita = novaID;
+        }
+    }
 }
+
 
 int insere (int ID, int x) {
 	// Base da recursão NODO ser folha
 	le (ID);
-	if (nodo.filhos[0] == -1) {
-		
-			insereOrdenado (x);
-			nodo.n++;
-			nodo.filhos[nodo.n] = -1;
-			if (nodo.n == D){
-				split (ID);
-			}
-			else{
-				escreve (ID);	
-			}
-		
-		return;
+	int i, j, aux;
+	if (nodo.filhos[0] == -1) {	
+		insereOrdenado (x);
+		nodo.n++;
+		nodo.filhos[nodo.n] = -1;
+		if (nodo.n == D) {
+			split (ID);
+		}
+		else {
+			escreve (ID);	
+			precisaInserir = -1;
+		}	
+	}
+
+	if (precisaInserir != -1) {
+		le (ID);
+        insereOrdenado (precisaInserir);
+        nodo.n++;
+        nodo.filhos[nodo.n] = raizDireita;
+
+        for(i = 0; i < nodo.n; i++) {
+            if(nodo.chaves[i] == x) 
+                break;
+        }
+        i++;
+
+        for(j = nodo.n+1; j > i; j--) {
+            if(i > 0) {
+                aux = nodo.filhos[i-1];
+                nodo.filhos[i-1] = nodo.filhos[i];
+                nodo.filhos[i] = aux;
+            }
+        }
+
+        if(nodo.n == D) {
+            split(ID);
+        }
+        else {
+            escreve(ID);
+            precisaInserir = -1;
+        }
+
 	}
 	
 	if (x < nodo.chaves[0]) 
@@ -243,7 +343,9 @@ int insere (int ID, int x) {
 		}
 }
 
+
 void escreve (int ID) {
+	contEscritas++;
 	// Altera nome de int para string
 	char *nome = intParaStr (ID);
 	// Contador 
@@ -300,6 +402,7 @@ void escreve (int ID) {
 }
 
 void le (int ID) {
+	contLeituras++;
 	char *nome = intParaStr (ID);
 
 	// Abri arquivo em modo leitura
